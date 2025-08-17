@@ -1,4 +1,4 @@
-# GitHubのReleasesページから大きいファイルをダウンロードしようとしたら失敗(618 jwt:expired)したが回避策を見つけた
+# GitHubのReleasesページから大きいファイルをダウンロードしようとしたらjwt:expiredで失敗した、回避策を見つけた
 
 ## 解決すべき問題
 
@@ -57,7 +57,7 @@ HTTP による接続要求を送信しました、応答を待っています...
 
 ## 分析：jwt:expiredとは何か
 
-jwtとはJson Web Tokenの略。Qiita [JWTって何に使うの？仕組みとその利便性](https://qiita.com/ichi_zamurai/items/8f0887c7bfb4c206b795)を参照しながら、分析してみた。
+jwtとはJson Web Tokenの略。Qiita「 [JWTって何に使うの？仕組みとその利便性](https://qiita.com/ichi_zamurai/items/8f0887c7bfb4c206b795)」を参照しながら、分析してみた。
 
 上記のURLのなかにjwtという名前で下記の文字列が埋め込まれていた。
 
@@ -78,7 +78,7 @@ jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmV
 }
 ```
 
-nbfつまりNot Beforeの値 1755411038 はUnixtimeだ。これを[Unixtime相互変換ツール](https://tool.konisimple.net/date/unixtime?q=1755411338)を使ってAsia/Tokyo(JST)+09:00基準に変換すると `2025-08-17 15:10:38` だ。expつまりexpirationの値 1755411338 を同様に変換すると `2025-08-17 15:15:38` だ。nbfからexpまでの時間間隔はピッタリ 5分 だ。つまりGitHubはReleasesページからファイルをダウンロードするHTTP要求が最長5分でexpireするように設定されていた。
+nbfつまりNot Beforeの値 1755411038 はUnixtimeだ。これを[Unixtime相互変換ツール](https://tool.konisimple.net/date/unixtime?q=1755411338)を使ってAsia/Tokyo(JST)+09:00基準に変換すると `2025-08-17 15:10:38` だ。次にexpつまりexpirationの値 1755411338 を同様に変換すると `2025-08-17 15:15:38` だ。nbfからexpまでの時間間隔はピッタリ 5分 だ。つまりGitHubはReleasesページからファイルをダウンロードするHTTP要求が最長5分でexpireするように設定されていたことを裏付けることができた。
 
 
 ## GitHub Communityでの情報交換
@@ -105,7 +105,7 @@ done
 
 このスクリプトが`wget`コマンドの`-c`(`--continue`)オプションを利用していることに注目してほしい。wgetの[ドキュメント](https://www.man7.org/linux/man-pages/man1/wget.1.html)から`-c`オプションの説明文を下記に引用する。
 
-Continue getting a partially-downloaded file.  This is useful
+           Continue getting a partially-downloaded file.  This is useful
            when you want to finish up a download started by a previous
            instance of Wget, or by another program.  For instance:
 
@@ -165,7 +165,7 @@ Continue getting a partially-downloaded file.  This is useful
            Note that -c only works with FTP servers and with HTTP servers
            that support the "Range" header.
 
-downloadKS.shスクリプトを実行すると `Katalon.Studio.dmg` ファイル（810メガバイト）をダウンロードすることに成功した。
+downloadKS.shスクリプトを実行すると最終的に `Katalon.Studio.dmg` ファイル（810メガバイト）をダウンロードすることに成功した。
 
 ```
 $ ls -A
@@ -173,9 +173,9 @@ Katalon.Studio.dmg	log1.txt		log3.txt
 downloadKS.sh		log2.txt
 ```
 
-これを実行した時、ログが`log1.txt`、`log2.txt`、`log3.txt`の３つのファイルに出力された。つまりシェルのuntilコマンドによるループの中でwgetコマンドが3回実行されたことがわかる。
+これを実行した時、ログが`log1.txt`、`log2.txt`、`log3.txt`の３つのファイルに出力された。このことからシェルのuntilコマンドによるループの中でwgetコマンドが3回実行されたことがわかる。
 
-`log2.txt`ファイルの冒頭を見ると下記のようなログを見ることができた。
+`log2.txt`ファイルの冒頭に下記のようなログが記録されていた。
 
 ```
 --2025-08-14 22:42:14--  https://github.com/katalon-studio/katalon-studio/releases/download/free-v10.3.0/Katalon.Studio.dmg
@@ -197,7 +197,57 @@ Saving to: ‘Katalon.Studio.dmg’
 ...(continue)
 ```
 
-これを見るとHTTPサーバがHTTPステータス `206 Partial Content` を応答したことがわかる。つまりGitHubのサーバーは `wget --continue` に正しく応答した。
+これを見るとHTTPサーバがHTTPステータス `206 Partial Content` を応答したことがわかる。このことからGitHubのサーバーが `wget -c` に正しく応答できるように構成するされていることが確認できた。
 
-全部で800メガバイトぐらいある大きなファイルをダウンロードするHTTP要求に対して、最初の５分間で300メガバイトぐらいを転送し終えたところで中断した。そこまでのログが `log1.txt`に記録された。続いて `downloadKS.sh` がuntilコマンドの制御によってもう一度 `wget --continue` を実行した。
 
+## 対策その２: curl -cオプション
+
+"wget -c" と同等のことがcurlコマンドでも実現できる。下記のシェルスクリプトを書いた。
+
+```
+#!/bin/bash
+until curl -C - -L -O https://github.com/katalon-studio/katalon-studio/releases/download/free-v10.3.0/Katalon.Studio.dmg -o Katalon.Studio.dmg; do :; done
+```
+
+これを実行したら800メガバイト超のファイルをダウンロードすることができた。
+
+```
+$ ./downloadKS-curl.sh
+** Resuming transfer from byte position 545714176
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+ 86  289M   86  249M    0     0  1032k      0  0:04:46  0:04:07  0:00:39 1061k
+curl: (92) HTTP/2 stream 1 was not closed cleanly: PROTOCOL_ERROR (err 1)
+Warning: Got more output options than URLs
+** Resuming transfer from byte position 807403520
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 39.8M  100 39.8M    0     0   961k      0  0:00:42  0:00:42 --:--:-- 1106k
+Warning: Got more output options than URLs
+```
+
+このメッセージを見ると、curlによるHTTPセッションが2回中断してつごう3回目のセッションで完了したことがわかる。
+
+### 対策その３: PowerShell の Invoke-WebRequest
+
+GitHub Communityにおけるsemagnumによる投稿:
+
+- https://github.com/orgs/community/discussions/169381#discussioncomment-14105097
+
+によれば、PowerShellのInvoke-WebRequestでも "wget -c" と同じことが実行できるとのこと。
+
+```
+Invoke-WebRequest -uri https://github.com/ORG/REPO/releases/download/v1.0.0/release.zip -OutFile my_download.zip -MaximumRetryCount 20 -Resume
+```
+
+Windowsユーザにとってはこれが一番身近な解決方法かもしれない。
+
+## GitHub CLIはどうした？
+
+[GitHub CLI](https://cli.github.com/)でも "wget -c" と同等のことができてしかるべきと思った。ところが2025年8月21日現在、GitHub CLIはファイルダウンロードの継続を未だサポートしていない。どうした？GitHub！
+
+## 結論
+
+先々週まで、GitHubのReleasesページをブラウザで開いてリンクをクリックして10分ちょっと待てば、800メガバイトを超える大きなファイルをダウンロードすることができた。ところが8月10日あたり以降、ブラウザでクリックする方法ではダウンロードできなくなった。回避策はある。wgetやcurlを使って中断したダウンロードを継続するようなスクリプトを作って実行せよ。ちょっと面倒ではあるが、当面、これしか方法はなと思う。
