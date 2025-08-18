@@ -246,7 +246,7 @@ GitHub Communityにおけるsemagnumによる投稿:
 Invoke-WebRequest -uri https://github.com/ORG/REPO/releases/download/v1.0.0/release.zip -OutFile my_download.zip -MaximumRetryCount 20 -Resume
 ```
 
-Windowsユーザにとってはこれが一番身近な解決方法かもしれない。
+Windowsユーザにとってはこれが一番手近な解決方法かもしれない。
 
 ## GitHub CLIはどうした？
 
