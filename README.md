@@ -240,7 +240,7 @@ GitHub Communityにおけるsemagnumによる投稿:
 
 - https://github.com/orgs/community/discussions/169381#discussioncomment-14105097
 
-によれば、PowerShellのInvoke-WebRequestでも "wget -c" と同じことが実行できるとのこと。
+によれば、PowerShellの `Invoke-WebRequest` を `-Resume` つきで実行すれば "wget -c" と同じことが実行できるとのこと。
 
 ```
 Invoke-WebRequest -uri https://github.com/ORG/REPO/releases/download/v1.0.0/release.zip -OutFile my_download.zip -MaximumRetryCount 20 -Resume
