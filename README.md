@@ -202,6 +202,8 @@ Saving to: ‘Katalon.Studio.dmg’
 これを見るとHTTPサーバがHTTPステータス `206 Partial Content` を応答したことがわかる。このことからGitHubのサーバーが `wget -c` に正しく応答できるように構成するされていることが確認できた。
 
 
+>GitHub Communityの[別のissue](https://github.com/orgs/community/discussions/169250#discussioncomment-14053991)によると、GitHubのサーバはつい数週前までダウンロードの再開をサポートしていなかったらしい。GitHubから何もアナウンスされていないので根拠薄弱だが、GitHubはJWTのexpireを短くする一方で、ダンロードの再開をサポートするようにサーバの設定を変更したんじゃないかと思われる。
+
 ## 対策その２: curl -cオプション
 
 "wget -c" と同等のことがcurlコマンドでも実現できる。下記のシェルスクリプトを書いた。
