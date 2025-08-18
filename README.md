@@ -57,7 +57,7 @@ HTTP による接続要求を送信しました、応答を待っています...
 
 jwtとはJson Web Tokenの略。Qiita「 [JWTって何に使うの？仕組みとその利便性](https://qiita.com/ichi_zamurai/items/8f0887c7bfb4c206b795)」を参照しながら、分析してみた。
 
-最初にわたしは `GET https://github.com/katalon-studio/katalon-studio/releases/download/free-v9.7.6/Katalon.Studio.Free.dmg` を試みた。このGET要求に対してGitHubのサーバはHTTPステータス `302 Found` を応答し、別のURLに移動するよう指図してきた。そのURLは `https://release-assets.githubusercontent.com/github-production-release-asset/` で始まるものだ。このURLのなかにjwtという名前で下記の文字列が埋め込まれていた。
+最初にわたしは `GET https://github.com/katalon-studio/katalon-studio/releases/download/free-v9.7.6/Katalon.Studio.Free.dmg` を試みた。このGET要求に対してGitHubのサーバはHTTPステータス `302 Found` を応答し、別のURLに移動するよう指図してきた。そのURLは `https://release-assets.githubusercontent.com/github-production-release-asset/` で始まるとても長い文字列だ。このURLのなかにjwtという名前で下記のURLパラメータが埋め込まれていた。
 
 ```
 jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc1NTQxMTMzOCwibmJmIjoxNzU1NDExMDM4LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.JBWLkanUKc-GjE6wwE9vXEmrynvTRy02duQK7VCJXv0
