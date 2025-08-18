@@ -240,13 +240,58 @@ GitHub Communityにおけるsemagnumによる投稿:
 
 - https://github.com/orgs/community/discussions/169381#discussioncomment-14105097
 
-によれば、PowerShellの `Invoke-WebRequest` を `-Resume` つきで実行すれば "wget -c" と同じことが実行できるとのこと。
+によれば、PowerShellの `Invoke-WebRequest` を `-Resume` つきで実行すれば "wget -c" と同じことが実行できるとのこと。WindowsユーザーにとってPowerShellが手近かもしれない。
+
+`C:\Users\kazurayam\tmp\katalon`フォルダを作り `downloadKS.ps1` ファイルを作った。内容は下記のとおり。
 
 ```
-Invoke-WebRequest -uri https://github.com/ORG/REPO/releases/download/v1.0.0/release.zip -OutFile my_download.zip -MaximumRetryCount 20 -Resume
+# downloadKS.ps1
+do {
+    echo $?
+} until (Invoke-WebRequest -uri https://github.com/katalon-studio/katalon-studio/releases/download/free-v10.3.0/Katalon.Studio.dmg -OutFile Katalon.Studio.dmg -MaximumRetryCount 20 -Resume)
 ```
 
-Windowsユーザにとってはこれが一番手近な解決方法かもしれない。
+PowerShellのコマンドラインを開いて `downloadKS.ps1` を実行した。
+
+```
+PS C:\Users\uraya\tmp\katalon> ls
+
+    Directory: C:\Users\uraya\tmp\katalon
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---          2025/08/19     7:31            188 downloadKS.ps1 
+
+PS C:\Users\uraya\tmp\katalon> .\downloadKS.ps1
+True
+```
+
+スクリプトが進行中、Invoke-WebRequestコマンドレットが下記のように進捗状況を表示してくれた。
+
+```
+Web Request status[#Downloaded: XXX.X MB of 809.9 MB      ]
+```
+
+5分ぐらい経過したところで（予想どおり）エラーが発生した。　
+
+```
+Invoke-WebRequest: C:\Users\uraya\tmp\katalon\downloadKS.ps1:1:1
+Line |
+   1 |  Invoke-WebRequest -uri https://github.com/katalon-studio/katalon-stud …
+~~~~~~~~~~~~
+     | One or more errors occurred. (The response ended
+     | prematurely. (ResponseEnded))
+```
+
+もういちど`downloadKS.ps1`スクリプトを実行した。Invoke-WebRequestコマンドレットに`-Resume`オプションを指定したから、前回実行時にダウンロードが中断したところから再度継続してくれることを期待して。
+
+```
+PS C:\Users\kazurayam\tmp\katalon> .\downloadKS.ps1
+```
+
+つごう３回、downloadKS.ps1スクリプトを実行して、最終的に800メガバイトのファイルがダウンロードできた。
+
+`do { ... } until (Invoke-WebRequest ...)` のようなループを含むスクリプトを書きたいと思った。`downloadKS.ps1`を２回、３回実行するのはダサいとおもったから。しかしできなかった。わたしはPowerShellのプログラミングに慣れていない。
 
 ## GitHub CLIはどうした？
 
