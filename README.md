@@ -63,7 +63,7 @@ jwtとはJson Web Tokenの略。Qiita「 [JWTって何に使うの？仕組み�
 jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc1NTQxMTMzOCwibmJmIjoxNzU1NDExMDM4LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.JBWLkanUKc-GjE6wwE9vXEmrynvTRy02duQK7VCJXv0
 ```
 
-[JSON Web Tokenデコーダー](https://www.jwt.io/ja)にこの文字列を転記すると、デコードされた内容を読むことができた。
+[JSON Web Tokenデコーダー](https://www.jwt.io/ja)にこの文字列を転記すると、内容を読むことができた。
 
 ![JWT decoded](./docs/images/JWT_decoded.png)
 
